@@ -1,36 +1,30 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+import dotenv from 'dotenv';
 
-const MONGODB_URI = process.env.MONGODB_URI;
 
-let cached = globalThis._mongo || {};
+// Initialize connection object with optional chaining for isConnected
+const connection = {};
 
-/**
- * The dbConnect function ensures that MongoDB is only connected once,
- * reusing the connection if it's already established.
- */
-const dbConnect = async () => {
-  // If there is an existing connection, reuse it
-  if (cached.isConnected) {
-    console.log('Using existing MongoDB connection');
+// dbConnect function to handle the connection
+async function dbConnect() {
+  dotenv.config({ path: '.env' });
+  
+  // Return if db is already connected
+  if (connection.isConnected) {
+    console.log("Already connected to database");
     return;
   }
 
+  // Connect to db if not connected
   try {
-    // Establish a new connection if none exists
-    console.log('Connecting to MongoDB...');
-    const db = await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-
-    // Cache the connection once it is established
-    cached.isConnected = db.connection.readyState === 1;
-
-    console.log('MongoDB connected successfully');
+    const db = await mongoose.connect(process.env.MONGODB_URI || "", {});
+    connection.isConnected = db.connections[0].readyState;
+    console.log("DB connected successfully");
   } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-    throw new Error('Could not connect to MongoDB');
+    console.log("DB connection failed", error);
+    process.exit(1);
   }
-};
+
+}
 
 export default dbConnect;
