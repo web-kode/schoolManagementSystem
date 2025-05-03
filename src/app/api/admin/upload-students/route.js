@@ -72,7 +72,7 @@ export async function POST(req) {
                     existingStudentIds: Array.from(existingIdSet),
                 },
             }, { status: 400 });
-        } 
+        }
 
         // 7️⃣ Prepare Valid Data for Insertion
         const studentsData = await Promise.all(
@@ -111,6 +111,7 @@ export async function POST(req) {
                 name: s.name,
                 email: s.email,
                 studentId: s.studentId,
+                classId: s.classId,
             })),
         }, { status: 200 });
     } catch (error) {
