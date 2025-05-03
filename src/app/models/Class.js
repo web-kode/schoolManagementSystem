@@ -18,10 +18,6 @@ const classSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User', // assuming teachers are also in the User model
     },
-    students: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // reference to student users
-    }],
     subjects: [{
         name: String,
         teacher: {

@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
         default: 'student'
     },
     refreshToken: {
-        type: String,
+        type: String, 
     },
 
     // Common metadata
@@ -44,14 +44,13 @@ const userSchema = new mongoose.Schema({
         trim: true
     }],
     classesAssigned: [{
-        type: String,
-        trim: true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Class',
     }],
 
     // Student-specific fields
     studentId: {
         type: String,
-        required: true,
         trim: true
     },
     rollNumber: {
@@ -98,7 +97,7 @@ const userSchema = new mongoose.Schema({
     resetPasswordExpire: {
         type: Date
     },
-},{
+}, {
     timestamps: true
 });
 

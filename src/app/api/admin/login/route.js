@@ -83,7 +83,7 @@ export async function POST(req) {
         // response
         const responseBody = {
             status: "success",
-            message: "User logged in Successfully",
+            message: "Admin logged in Successfully",
             data: { user: loggedInAdmin, accessToken, refreshToken },
         };
         const response = NextResponse.json(responseBody, { status: 200 });
