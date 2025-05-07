@@ -4,6 +4,7 @@ import Class from "./Class";
 import Timetable from "./Timetable";
 import LeaveRequest from "./LeaveRequest";
 import Ticket from "./Ticket";
+import Announcement from "./Announcement";
 
 export {
     Attendance,
@@ -11,5 +12,6 @@ export {
     Class,
     Timetable,
     LeaveRequest,
-    Ticket
+    Ticket,
+    Announcement
 }
