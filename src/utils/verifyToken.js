@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { ApiError } from "@/app/utils";
+import { ApiError } from "./index";
 import dotenv from "dotenv"
 dotenv.config({ path: '.env' });
 

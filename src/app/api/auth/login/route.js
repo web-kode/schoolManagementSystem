@@ -1,6 +1,6 @@
-import User from "@/app/models/User";
+import User from "../../../../models/User.js";
 import jwt from "jsonwebtoken"
-import { dbConnect, ApiError } from "@/app/utils";
+import { dbConnect, ApiError } from "../../../../utils/index.js";
 
 import dotenv from 'dotenv';
 import { NextResponse } from "next/server";

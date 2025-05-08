@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { dbConnect, verifyToken, ApiError } from "@/app/utils";
-import Attendance from "@/app/models/Attendance.js";
-import Class from "@/app/models/Class";
-import User from "@/app/models/User";
+import { dbConnect, verifyToken, ApiError } from "../../../../utils/index.js";
+import {Attendance, Class, User} from "../../../../models/index.js"
 
 /**
  * GET handler for retrieving daily attendance summary
