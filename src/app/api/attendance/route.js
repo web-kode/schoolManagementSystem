@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { dbConnect, verifyToken, verifyAdminOrTeacher, ApiError } from "@/app/utils";
-import { LeaveRequest, User, Class, Attendance } from "@/app/models/index.js"
+import { dbConnect, verifyToken, verifyAdminOrTeacher, ApiError } from "../../../utils/index.js";
+import { LeaveRequest, User, Class, Attendance } from "../../../models/index.js"
 
 // This function checks if a student is on approved leave for a given date
 async function checkStudentLeave(studentId, date) {

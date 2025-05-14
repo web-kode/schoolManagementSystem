@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { ApiError } from '../../utils/index';
+import { ApiError } from '../../../utils/index.js';
 import { cookies } from 'next/headers';
 import dotenv from "dotenv"
 import { NextResponse } from 'next/server';

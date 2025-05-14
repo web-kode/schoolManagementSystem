@@ -1,4 +1,4 @@
-import { ApiError } from './';
+import { ApiError } from './index.js';
 
 export const verifyAdmin = (req) => {
   if (req.user?.role !== 'admin') {

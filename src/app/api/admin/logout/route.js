@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyToken, ApiResponse, ApiError } from "@/app/utils";
+import { verifyToken, ApiResponse, ApiError } from "../../../../utils/index.js";
 
 export async function POST(req) {
     try {

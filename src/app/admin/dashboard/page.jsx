@@ -1,15 +1,9 @@
 "use client"
-import React, { useState } from "react";
-import {
-    Users, UserCheck, BookOpen, Activity,
-    Calendar, AlertCircle, CheckCircle, XCircle,
-    Clock, AlertTriangle
-} from "lucide-react";
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid,
-    Tooltip, ResponsiveContainer, PieChart, Pie,
-    Cell, Legend
-} from "recharts";
+import React, { useState, useEffect } from "react";
+import { Users, UserCheck, BookOpen, Activity, Calendar, AlertCircle, CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import axios from "axios";
+import { getApi } from "../../../components/apiClient.js";
 
 // Today's attendance data from API response
 const todayAttendanceData = {
@@ -106,14 +100,14 @@ const todayAttendanceData = {
 };
 
 // Mock data for previous days to show in chart
-const previousDaysData = [
-    { date: "May 03", attendancePercentage: 92 },
-    { date: "May 04", attendancePercentage: 88 },
-    { date: "May 05", attendancePercentage: 95 },
-    { date: "May 06", attendancePercentage: 91 },
-    { date: "May 07", attendancePercentage: 89 },
-    { date: "May 08", attendancePercentage: todayAttendanceData.schoolSummary.attendancePercentage || 0 },
-];
+// const previousDaysData = [
+//     { date: "May 03", attendancePercentage: 92 },
+//     { date: "May 04", attendancePercentage: 88 },
+//     { date: "May 05", attendancePercentage: 95 },
+//     { date: "May 06", attendancePercentage: 91 },
+//     { date: "May 07", attendancePercentage: 89 },
+//     { date: "May 08", attendancePercentage: todayAttendanceData.schoolSummary.attendancePercentage || 0 },
+// ];
 
 // Upcoming events
 const upcomingEvents = [
@@ -129,29 +123,60 @@ const pendingRequests = [
     { id: 3, type: "Transfer", from: "Student Williams", status: "Review" },
 ];
 
-// Colors for pie chart
-const COLORS = ['#4CAF50', '#F44336', '#FFC107', '#9E9E9E'];
-
 export default function DashboardPage() {
     const [selectedClass, setSelectedClass] = useState(null);
+    const [dashboardData, setDashboardData] = useState({
+        date: '',
+        totalCounts: {
+            classCount: 0,
+            percentage: "0.00",
+            studentCount: 0,
+            teacherCount: 0
+        },
+        attendances: {
+            totalPresent: 0,
+            totalLeave: 0,
+            totalAbsent: 0,
+            totalNotMarked: 0,
+        },
+        results: [{ date: "", percentage: "" }],
+        attendanceResults: []
+    })
 
-    // Calculate totals for dashboard stats
-    const totalStudents = 1245; // From original mock data
-    const totalTeachers = 64;   // From original mock data
-    const totalClasses = 10;    // From original mock data
+    // get dashboard data on refresh
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const url = `/api/admin/dashboard-data`
+                const response = await getApi(url)
+                setDashboardData({
+                    date: response.date,
+                    totalCounts: {
+                        ...response.totalCounts
+                    },
+                    attendances: {
+                        ...response.attendances
+                    },
+                    results: response.results,
+                    attendanceResults: response.attendanceResults
+                });
+            } catch (error) {
+                console.log("Dashboard Data Error :: ", error)
+            }
+        }
+        fetchData()
+    }, []);
 
     // Format attendance status data for pie chart
     const formatAttendanceForPieChart = (data) => {
         return [
-            { name: "Present", value: data.present, color: "#4CAF50" },
-            { name: "Absent", value: data.absent, color: "#F44336" },
-            { name: "Leave", value: data.leave, color: "#FFC107" },
-            { name: "Not Marked", value: data.notMarked, color: "#9E9E9E" }
+            { name: "Present", value: data.totalPresent, color: "#4CAF50" },
+            { name: "Absent", value: data.totalAbsent, color: "#F44336" },
+            { name: "Leave", value: data.totalLeave, color: "#FFC107" },
+            { name: "Not Marked", value: data.totalNotMarked, color: "#9E9E9E" }
         ].filter(item => item.value > 0);
     };
-
-    // School summary attendance data for pie chart
-    const schoolAttendancePieData = formatAttendanceForPieChart(todayAttendanceData.schoolSummary);
+    const schoolAttendancePieData = formatAttendanceForPieChart(dashboardData.attendances);
 
     // Handle class selection
     const handleClassClick = (className) => {
@@ -171,7 +196,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                         <h3 className="text-gray-500 text-sm">Total Students</h3>
-                        <p className="text-2xl font-bold">{totalStudents}</p>
+                        <p className="text-2xl font-bold">{dashboardData.totalCounts.studentCount}</p>
                     </div>
                 </div>
 
@@ -181,7 +206,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                         <h3 className="text-gray-500 text-sm">Total Teachers</h3>
-                        <p className="text-2xl font-bold">{totalTeachers}</p>
+                        <p className="text-2xl font-bold">{dashboardData.totalCounts.teacherCount}</p>
                     </div>
                 </div>
 
@@ -191,7 +216,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                         <h3 className="text-gray-500 text-sm">Total Classes</h3>
-                        <p className="text-2xl font-bold">{totalClasses}</p>
+                        <p className="text-2xl font-bold">{dashboardData.totalCounts.classCount}</p>
                     </div>
                 </div>
 
@@ -200,8 +225,8 @@ export default function DashboardPage() {
                         <Activity className="text-purple-600" size={20} />
                     </div>
                     <div>
-                        <h3 className="text-gray-500 text-sm">Today's Attendance</h3>
-                        <p className="text-2xl font-bold">{todayAttendanceData.schoolSummary.attendancePercentage}%</p>
+                        <h3 className="text-gray-500 text-sm">Yesterday's Attendance</h3>
+                        <p className="text-2xl font-bold">{dashboardData.totalCounts.percentage}</p>
                     </div>
                 </div>
             </div>
@@ -213,9 +238,9 @@ export default function DashboardPage() {
                     <div className="p-4 border-b border-gray-100">
                         <div className="flex items-center">
                             <Clock className="text-gray-500 mr-2" size={18} />
-                            <h3 className="text-lg font-semibold">Today's Attendance Overview</h3>
+                            <h3 className="text-lg font-semibold">Yesterday's Attendance Overview</h3>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">{todayAttendanceData.date}</p>
+                        <p className="text-sm text-gray-500 mt-1">{dashboardData.date}</p>
                     </div>
                     <div className="p-4">
                         <div className="h-64">
@@ -255,28 +280,28 @@ export default function DashboardPage() {
                                     <CheckCircle size={16} className="text-green-600 mr-1" />
                                     <span className="font-medium text-green-700">Present</span>
                                 </div>
-                                <p className="text-xl font-bold text-green-700">{todayAttendanceData.schoolSummary.present}</p>
+                                <p className="text-xl font-bold text-green-700">{dashboardData.attendances.totalPresent}</p>
                             </div>
                             <div className="bg-red-50 rounded p-3 text-center">
                                 <div className="flex items-center justify-center mb-1">
                                     <XCircle size={16} className="text-red-600 mr-1" />
                                     <span className="font-medium text-red-700">Absent</span>
                                 </div>
-                                <p className="text-xl font-bold text-red-700">{todayAttendanceData.schoolSummary.absent}</p>
+                                <p className="text-xl font-bold text-red-700">{dashboardData.attendances.totalAbsent}</p>
                             </div>
                             <div className="bg-amber-50 rounded p-3 text-center">
                                 <div className="flex items-center justify-center mb-1">
                                     <Calendar size={16} className="text-amber-600 mr-1" />
                                     <span className="font-medium text-amber-700">Leave</span>
                                 </div>
-                                <p className="text-xl font-bold text-amber-700">{todayAttendanceData.schoolSummary.leave}</p>
+                                <p className="text-xl font-bold text-amber-700">{dashboardData.attendances.totalLeave}</p>
                             </div>
                             <div className="bg-gray-100 rounded p-3 text-center">
                                 <div className="flex items-center justify-center mb-1">
                                     <Clock size={16} className="text-gray-600 mr-1" />
                                     <span className="font-medium text-gray-700">Not Marked</span>
                                 </div>
-                                <p className="text-xl font-bold text-gray-700">{todayAttendanceData.schoolSummary.notMarked}</p>
+                                <p className="text-xl font-bold text-gray-700">{dashboardData.attendances.totalNotMarked}</p>
                             </div>
                         </div>
                     </div>
@@ -289,121 +314,146 @@ export default function DashboardPage() {
                             <BookOpen className="text-gray-500 mr-2" size={18} />
                             <h3 className="text-lg font-semibold">Class-wise Status</h3>
                         </div>
+                        <p className="text-sm text-gray-500 mt-1">{dashboardData.date}</p>
                     </div>
+
                     <div className="p-4">
                         <div className="space-y-4 max-h-80 overflow-y-auto">
-                            {todayAttendanceData.classSummaries.map((classData) => (
-                                <div
-                                    key={classData._id}
-                                    className={`border rounded-lg p-3 cursor-pointer transition-all ${selectedClass === classData.name ? 'bg-indigo-50 border-indigo-200' : 'bg-gray-50 hover:bg-gray-100'
-                                        }`}
-                                    onClick={() => handleClassClick(classData.name)}
-                                >
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h5 className="font-medium">Class {classData.name}</h5>
-                                        <span className={`text-sm font-semibold px-2 py-1 rounded-full ${classData.notMarked === classData.totalStudents
-                                            ? 'bg-gray-200 text-gray-700'
-                                            : classData.attendancePercentage > 90
-                                                ? 'bg-green-100 text-green-700'
-                                                : classData.attendancePercentage > 75
-                                                    ? 'bg-blue-100 text-blue-700'
-                                                    : 'bg-amber-100 text-amber-700'
-                                            }`}>
-                                            {classData.notMarked === classData.totalStudents
-                                                ? 'Not Marked'
-                                                : `${classData.attendancePercentage}%`
-                                            }
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between text-sm text-gray-600">
-                                        <span>Total: {classData.totalStudents}</span>
-                                        <div className="flex space-x-2">
-                                            <span className="text-green-600">P: {classData.present}</span>
-                                            <span className="text-red-600">A: {classData.absent}</span>
-                                            <span className="text-amber-600">L: {classData.leave}</span>
-                                        </div>
-                                    </div>
+                            {dashboardData.attendanceResults.length > 0 ? (
+                                dashboardData.attendanceResults.map((classData) => {
+                                    // Calculate attendance percentage
+                                    const totalStudents = classData.present + classData.absent + classData.leave;
+                                    const notMarked = classData.status === "Not Marked" ? totalStudents : 0;
+                                    const attendancePercentage = totalStudents > 0
+                                        ? Math.round((classData.present / totalStudents) * 100)
+                                        : 0;
 
-                                    {/* Progress bar to visualize attendance */}
-                                    {classData.totalStudents > 0 && (
-                                        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                                            <div className="flex">
-                                                <div
-                                                    className="bg-green-500 h-2 rounded-l-full"
-                                                    style={{ width: `${(classData.present / classData.totalStudents) * 100}%` }}
-                                                ></div>
-                                                <div
-                                                    className="bg-red-500 h-2"
-                                                    style={{ width: `${(classData.absent / classData.totalStudents) * 100}%` }}
-                                                ></div>
-                                                <div
-                                                    className="bg-amber-500 h-2"
-                                                    style={{ width: `${(classData.leave / classData.totalStudents) * 100}%` }}
-                                                ></div>
-                                                <div
-                                                    className="bg-gray-400 h-2 rounded-r-full"
-                                                    style={{ width: `${(classData.notMarked / classData.totalStudents) * 100}%` }}
-                                                ></div>
+                                    return (
+                                        <div
+                                            key={classData.classId}
+                                            className={`border border-[#ccc] rounded-lg p-3 cursor-pointer transition-all ${selectedClass === classData.className ? 'bg-indigo-50 border-indigo-200' : 'bg-gray-50 hover:bg-gray-100'
+                                                }`}
+                                            onClick={() => handleClassClick(classData.className)}
+                                        >
+                                            <div className="flex justify-between items-center mb-2">
+                                                <h5 className="font-medium">Class {classData.className}</h5>
+                                                <span className={`text-sm font-semibold px-2 py-1 rounded-full ${classData.status === "Not Marked"
+                                                        ? 'bg-gray-200 text-gray-700'
+                                                        : attendancePercentage > 90
+                                                            ? 'bg-green-100 text-green-700'
+                                                            : attendancePercentage > 75
+                                                                ? 'bg-blue-100 text-blue-600'
+                                                                : 'bg-amber-100 text-amber-700'
+                                                    }`}>
+                                                    {classData.status === "Not Marked"
+                                                        ? 'Not Marked'
+                                                        : `${attendancePercentage}%`
+                                                    }
+                                                </span>
                                             </div>
+
+                                            <div className="flex justify-between text-sm text-gray-600">
+                                                <span>Total: {totalStudents}</span>
+                                                <div className="flex space-x-2">
+                                                    <span className="text-green-600">P: {classData.present}</span>
+                                                    <span className="text-red-600">A: {classData.absent}</span>
+                                                    <span className="text-amber-600">L: {classData.leave}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Progress bar to visualize attendance */}
+                                            {totalStudents > 0 && (
+                                                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                                    <div className="flex">
+                                                        <div
+                                                            className="bg-green-500 h-2 rounded-l-full"
+                                                            style={{ width: `${(classData.present / totalStudents) * 100}%` }}
+                                                        ></div>
+                                                        <div
+                                                            className="bg-red-500 h-2"
+                                                            style={{ width: `${(classData.absent / totalStudents) * 100}%` }}
+                                                        ></div>
+                                                        <div
+                                                            className="bg-amber-500 h-2"
+                                                            style={{ width: `${(classData.leave / totalStudents) * 100}%` }}
+                                                        ></div>
+                                                        {notMarked > 0 && (
+                                                            <div
+                                                                className="bg-gray-400 h-2 rounded-r-full"
+                                                                style={{ width: `${(notMarked / totalStudents) * 100}%` }}
+                                                            ></div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+                                    );
+                                })
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+                                    <AlertCircle size={40} className="mb-2" />
+                                    <p>No class data available</p>
                                 </div>
-                            ))}
+                            )}
                         </div>
 
-                        {/* Show message if no classes have data */}
-                        {todayAttendanceData.classSummaries.length === 0 && (
-                            <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-                                <AlertCircle size={40} className="mb-2" />
-                                <p>No class data available</p>
-                            </div>
-                        )}
-
                         {/* Class details when a class is selected */}
-                        {selectedClass && selectedClassData && (
-                            <div className="mt-4 border-t pt-4">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h4 className="font-semibold text-md text-gray-700">
-                                        {selectedClass} Details
-                                    </h4>
-                                    <button
-                                        onClick={() => setSelectedClass(null)}
-                                        className="text-sm text-indigo-600 hover:text-indigo-800"
-                                    >
-                                        Close
-                                    </button>
-                                </div>
+                        {selectedClass && selectedClassData && (() => {
+                            const totalStudents = selectedClassData.present + selectedClassData.absent + selectedClassData.leave;
+                            const notMarked = selectedClassData.status === "Not Marked" ? totalStudents : 0;
+                            const attendancePercentage = totalStudents > 0
+                                ? Math.round((selectedClassData.present / totalStudents) * 100)
+                                : 0;
 
-                                <div className="bg-indigo-50 p-3 rounded-lg">
-                                    <div className="grid grid-cols-2 gap-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Total Students:</span>
-                                            <span className="font-semibold">{selectedClassData.totalStudents}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Attendance:</span>
-                                            <span className="font-semibold">{selectedClassData.attendancePercentage}%</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Present:</span>
-                                            <span className="font-semibold text-green-700">{selectedClassData.present}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Absent:</span>
-                                            <span className="font-semibold text-red-700">{selectedClassData.absent}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Leave:</span>
-                                            <span className="font-semibold text-amber-700">{selectedClassData.leave}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Not Marked:</span>
-                                            <span className="font-semibold text-gray-700">{selectedClassData.notMarked}</span>
+                            return (
+                                <div className="mt-4 border-t pt-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h4 className="font-semibold text-md text-gray-700">
+                                            {selectedClass} Details
+                                        </h4>
+                                        <button
+                                            onClick={() => setSelectedClass(null)}
+                                            className="text-sm text-blue-600 hover:text-blue-800"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+
+                                    <div className="bg-indigo-50 p-3 rounded-lg">
+                                        <div className="grid grid-cols-2 gap-2 text-sm">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Total Students:</span>
+                                                <span className="font-semibold">{totalStudents}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Attendance:</span>
+                                                <span className="font-semibold">
+                                                    {selectedClassData.status === "Not Marked"
+                                                        ? "Not Marked"
+                                                        : `${attendancePercentage}%`}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Present:</span>
+                                                <span className="font-semibold text-green-700">{selectedClassData.present}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Absent:</span>
+                                                <span className="font-semibold text-red-700">{selectedClassData.absent}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Leave:</span>
+                                                <span className="font-semibold text-amber-700">{selectedClassData.leave}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Not Marked:</span>
+                                                <span className="font-semibold text-gray-700">{notMarked}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })()}
                     </div>
                 </div>
             </div>
@@ -421,7 +471,7 @@ export default function DashboardPage() {
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart
-                                    data={previousDaysData}
+                                    data={dashboardData.results}
                                     margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
                                 >
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -435,10 +485,10 @@ export default function DashboardPage() {
                                         domain={[0, 100]}
                                         tickFormatter={(value) => `${value}%`}
                                     />
-                                    <Tooltip formatter={(value) => [`${value}%`, "Attendance"]} />
+                                    <Tooltip fill='#155dfc' formatter={(value) => [`${value}%`, "Attendance"]} />
                                     <Bar
-                                        dataKey="attendancePercentage"
-                                        fill="#4f46e5"
+                                        dataKey="percentage"
+                                        fill="#155dfc"
                                         radius={[4, 4, 0, 0]}
                                         name="Attendance"
                                     />

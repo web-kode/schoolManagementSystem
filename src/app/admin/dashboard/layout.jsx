@@ -1,21 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import {
-    Menu,
-    User,
-    Users,
-    BookOpen,
-    Calendar,
-    CheckSquare,
-    Bell,
-    Ticket,
-    FileText,
-    ChevronDown,
-    Search,
-    LogOut,
-    Settings
-} from 'lucide-react';
+import { Menu, User, Users, BookOpen, Calendar, CheckSquare, Bell, Ticket, FileText, ChevronDown, Search, LogOut, Settings } from 'lucide-react';
+import axios from 'axios';
+import {toast} from "react-toastify"
 import { useRouter } from "next/navigation"
 
 export default function AdminDashboardLayout({ children }) {
@@ -26,6 +14,7 @@ export default function AdminDashboardLayout({ children }) {
     const user = JSON.parse(localStorage.getItem("user"))
     const username = user?.name;
     const router = useRouter()
+    const [islogoutLoading, setIsLogoutLoading] = useState(false)
 
     useEffect(() => {
         const updateGreeting = () => {
@@ -87,11 +76,18 @@ export default function AdminDashboardLayout({ children }) {
 
     const [activeNav, setActiveNav] = useState('Dashboard');
 
-    const handleLogout = () => {
-        // Implement logout functionality
-        console.log("Logging out...");
-        // localStorage.removeItem("user");
-        // router.push("/login");
+    const handleLogout = async() => {
+
+        try {
+            const url = `/api/admin/logout`
+            await axios.post(url)
+            localStorage.removeItem('user')
+            toast.success("Admin logged out!");
+            router.push("/admin/login")
+        } catch (error) {
+            console.log("Error while logging out : ", error)
+            toast.error("Error in logging out admin!");
+        }
     };
 
     const handleEditProfile = () => {
@@ -204,7 +200,7 @@ export default function AdminDashboardLayout({ children }) {
                                             onClick={handleLogout}
                                         >
                                             <LogOut size={16} className="mr-2" />
-                                            Logout
+                                            {islogoutLoading ? "Logging out..." : "Logout" }
                                         </button>
                                     </div>
                                 )}

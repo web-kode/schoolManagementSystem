@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { dbConnect, ApiError, verifyToken, verifyAdminOrTeacher } from '@/app/utils';
-import Timetable from '@/app/models/Timetable';
+import { dbConnect, ApiError, verifyToken, verifyAdminOrTeacher } from '../../../utils/index.js';
+import {Timetable} from "../../../models/index.js"
 import { NextResponse } from 'next/server';
 
 export async function POST(req) {
